@@ -1,0 +1,1138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Satzlupe</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Paste a German sentence and get a learner-friendly breakdown: meaning, word-by-word grammar, modal particles, alternatives and tone.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Jost:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+/* Layout: a sticky composer column on the left and the analysis as a reading column on the right; one column on phones. */
+:root {
+  --paper: #f4f6f9;
+  --sheet: #ffffff;
+  --ink: #161a21;
+  --muted: #5a6372;
+  --rule: #dce1e8;
+  --marker: #f2b705;
+  --marker-soft: rgba(242, 183, 5, 0.32);
+  --btn-bg: #161a21;
+  --btn-fg: #ffffff;
+  --danger: #b42318;
+  --g-m: #1f5fd1;
+  --g-m-bg: #e4ecfb;
+  --g-f: #c02a2a;
+  --g-f-bg: #fbe6e6;
+  --g-n: #1b7a43;
+  --g-n-bg: #e0f2e7;
+  --font-display: "Jost", "Futura", "Century Gothic", "Avenir Next", system-ui, sans-serif;
+  --font-body: "Source Serif 4", "Iowan Old Style", Georgia, "Times New Roman", serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --step--1: 0.8125rem;
+  --step-0: 1rem;
+  --step-1: 1.1875rem;
+  --step-2: 1.5rem;
+  --step-3: clamp(1.75rem, 1.2rem + 2.2vw, 2.5rem);
+  --radius: 10px;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0f1217;
+    --sheet: #171b22;
+    --ink: #e7eaf0;
+    --muted: #98a1b0;
+    --rule: #2a313c;
+    --marker: #f2c230;
+    --marker-soft: rgba(242, 194, 48, 0.24);
+    --btn-bg: #e7eaf0;
+    --btn-fg: #0f1217;
+    --danger: #f97066;
+    --g-m: #8db2f7;
+    --g-m-bg: rgba(141, 178, 247, 0.15);
+    --g-f: #f39a9a;
+    --g-f-bg: rgba(243, 154, 154, 0.15);
+    --g-n: #7fd3a2;
+    --g-n-bg: rgba(127, 211, 162, 0.15);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0f1217;
+  --sheet: #171b22;
+  --ink: #e7eaf0;
+  --muted: #98a1b0;
+  --rule: #2a313c;
+  --marker: #f2c230;
+  --marker-soft: rgba(242, 194, 48, 0.24);
+  --btn-bg: #e7eaf0;
+  --btn-fg: #0f1217;
+  --danger: #f97066;
+  --g-m: #8db2f7;
+  --g-m-bg: rgba(141, 178, 247, 0.15);
+  --g-f: #f39a9a;
+  --g-f-bg: rgba(243, 154, 154, 0.15);
+  --g-n: #7fd3a2;
+  --g-n-bg: rgba(127, 211, 162, 0.15);
+  color-scheme: dark;
+}
+
+[hidden] { display: none !important; }
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: var(--step-0);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 3px solid var(--marker); outline-offset: 2px; }
+
+.page {
+  max-width: 76rem;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 1.25rem 4rem;
+}
+
+/* Masthead */
+.masthead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
+  padding-bottom: 1.25rem;
+  margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--rule);
+}
+.brand { display: flex; align-items: baseline; gap: 0.75rem; flex-wrap: wrap; }
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-2);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+.wordmark .lens {
+  display: inline-block;
+  width: 0.62em;
+  height: 0.62em;
+  margin-left: 0.12em;
+  border: 0.11em solid currentColor;
+  border-radius: 50%;
+  background: var(--marker-soft);
+  vertical-align: 0.02em;
+}
+.tagline {
+  font-family: var(--font-display);
+  color: var(--muted);
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mode {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+.mode-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--rule);
+}
+.mode[data-mode="claude"] .mode-dot,
+.mode[data-mode="api"] .mode-dot { background: var(--g-n); }
+.mode[data-mode="api-missing"] .mode-dot { background: var(--marker); }
+.link-btn {
+  border: 0;
+  background: none;
+  padding: 0;
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  color: var(--ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* Two-column layout */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 23rem) minmax(0, 1fr);
+  gap: 2.5rem;
+  align-items: start;
+}
+@media (max-width: 880px) {
+  .layout { grid-template-columns: minmax(0, 1fr); gap: 2rem; }
+}
+
+/* Composer */
+.composer {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 1rem);
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  min-width: 0;
+}
+@media (max-width: 880px) { .composer { position: static; } }
+.field-label {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.field { display: grid; gap: 0.4rem; }
+textarea#sentence {
+  width: 100%;
+  min-height: 6.5rem;
+  resize: vertical;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+  line-height: 1.45;
+}
+textarea#sentence:focus-visible { outline-offset: 0; }
+.hint { margin: 0; font-size: var(--step--1); color: var(--muted); line-height: 1.5; }
+kbd {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 0.05rem 0.35rem;
+  border: 1px solid var(--rule);
+  border-bottom-width: 2px;
+  border-radius: 4px;
+}
+
+.examples { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip {
+  border: 1px solid var(--rule);
+  background: transparent;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  cursor: pointer;
+  text-align: left;
+}
+.chip:hover { border-color: var(--ink); }
+
+.actions { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-height: 2.75rem;
+  padding: 0.5rem 1.1rem;
+  border-radius: 8px;
+  border: 1px solid var(--btn-bg);
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-0);
+  cursor: pointer;
+}
+.btn-primary { background: var(--btn-bg); color: var(--btn-fg); flex: 1 1 8rem; }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--rule); }
+.btn-secondary:hover { border-color: var(--ink); }
+.btn[disabled] { opacity: 0.55; cursor: progress; }
+
+.status {
+  margin: 0;
+  min-height: 1.5em;
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+.status[data-tone="error"] { color: var(--danger); }
+
+.key-panel {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.9rem;
+  border: 1px dashed var(--rule);
+  border-radius: 8px;
+}
+.key-panel input[type="password"] {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  background: var(--paper);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+}
+.check { display: flex; gap: 0.5rem; align-items: center; font-family: var(--font-display); font-size: var(--step--1); }
+.key-panel a { color: inherit; }
+
+details.prompt { border-top: 1px solid var(--rule); padding-top: 0.75rem; }
+details.prompt summary {
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.prompt-text {
+  margin: 0.6rem 0 0;
+  max-height: 16rem;
+  overflow: auto;
+  padding: 0.75rem;
+  background: var(--paper);
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Result */
+.result { min-width: 0; }
+.result-head { display: grid; gap: 0.35rem; margin-bottom: 1.25rem; }
+.eyebrow {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step--1);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.analysed {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step-3);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+.analysed mark {
+  color: inherit;
+  background: linear-gradient(transparent 58%, var(--marker-soft) 58%, var(--marker-soft) 92%, transparent 92%);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.result-note { margin: 0; color: var(--muted); font-size: var(--step--1); font-family: var(--font-display); }
+
+.toc {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 1.75rem;
+  padding: 0;
+  list-style: none;
+}
+.toc button {
+  display: inline-flex;
+  gap: 0.4rem;
+  align-items: baseline;
+  border: 1px solid var(--rule);
+  background: var(--sheet);
+  border-radius: 6px;
+  padding: 0.3rem 0.65rem;
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  cursor: pointer;
+}
+.toc button:hover { border-color: var(--ink); }
+.toc .n { font-family: var(--font-mono); color: var(--muted); font-size: 0.75rem; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: -0.75rem 0 1.75rem;
+  font-family: var(--font-display);
+  font-size: var(--step--1);
+  color: var(--muted);
+}
+
+.parts { display: grid; gap: 2.25rem; max-width: 46rem; }
+.part { display: grid; gap: 0.85rem; min-width: 0; scroll-margin-top: calc(env(safe-area-inset-top, 0px) + 1rem); }
+.part > * { margin: 0; }
+.part h2 {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding-top: 0.9rem;
+  border-top: 2px solid var(--ink);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--step-1);
+  letter-spacing: 0.01em;
+  text-wrap: balance;
+}
+.part-num {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  font-size: var(--step--1);
+  color: var(--muted);
+  min-width: 1.5em;
+}
+.part h3 { font-family: var(--font-display); font-weight: 600; font-size: var(--step-0); }
+.part p, .part li { max-width: 65ch; }
+.part ul, .part ol { padding-left: 1.3rem; display: grid; gap: 0.45rem; }
+.part li > p { margin: 0; }
+.part li > p + p { margin-top: 0.25rem; }
+.part strong {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 1.02em;
+}
+.part em { font-style: italic; }
+.part code {
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+  padding: 0.05rem 0.3rem;
+  border-radius: 4px;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+}
+.part blockquote {
+  margin: 0;
+  padding: 0.85rem 1rem;
+  background: var(--sheet);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+}
+.part blockquote p { margin: 0; }
+.part blockquote p + p { margin-top: 0.35rem; }
+.part hr { border: 0; border-top: 1px solid var(--rule); }
+
+.table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+}
+.table-wrap table { width: 100%; border-collapse: collapse; min-width: 32rem; }
+.table-wrap th, .table-wrap td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--rule);
+  line-height: 1.5;
+}
+.table-wrap tr:last-child td { border-bottom: 0; }
+.table-wrap th {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: var(--step--1);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.table-wrap td:first-child { white-space: nowrap; font-family: var(--font-display); font-weight: 600; }
+/* Phones: each table row becomes a small stacked card, labelled from the header row. */
+@media (max-width: 600px) {
+  .table-wrap table { min-width: 0; }
+  .table-wrap thead { display: none; }
+  .table-wrap table, .table-wrap tbody, .table-wrap tr, .table-wrap td { display: block; }
+  .table-wrap tr { padding: 0.75rem 0.85rem; border-bottom: 1px solid var(--rule); }
+  .table-wrap tr:last-child { border-bottom: 0; }
+  .table-wrap td { padding: 0.15rem 0; border-bottom: 0; white-space: normal; }
+  .table-wrap td:first-child { font-size: var(--step-1); padding-bottom: 0.35rem; }
+  .table-wrap td[data-label]:not(:first-child)::before {
+    content: attr(data-label);
+    display: block;
+    font-family: var(--font-display);
+    font-size: 0.6875rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
+
+.g {
+  display: inline-block;
+  padding: 0 0.4em;
+  border-radius: 4px;
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: 0.92em;
+  line-height: 1.5;
+}
+.g-m { color: var(--g-m); background: var(--g-m-bg); }
+.g-f { color: var(--g-f); background: var(--g-f-bg); }
+.g-n { color: var(--g-n); background: var(--g-n-bg); }
+
+.plain { white-space: pre-wrap; font-family: var(--font-body); margin: 0; }
+
+.waiting {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  max-width: 46rem;
+  font-family: var(--font-display);
+}
+.waiting p { margin: 0; }
+.waiting .sub { color: var(--muted); font-size: var(--step--1); }
+.dots span {
+  display: inline-block;
+  width: 0.4rem;
+  height: 0.4rem;
+  margin-right: 0.25rem;
+  border-radius: 50%;
+  background: var(--marker);
+  animation: pulse 1.2s infinite ease-in-out;
+}
+.dots span:nth-child(2) { animation-delay: 0.15s; }
+.dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes pulse { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+
+.result.is-streaming .parts > .part:last-child::after {
+  content: "";
+  display: block;
+  width: 2.5rem;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--marker);
+  animation: pulse 1.2s infinite ease-in-out;
+}
+
+.notice {
+  max-width: 46rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--sheet);
+  font-family: var(--font-display);
+}
+.notice p { margin: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dots span, .result.is-streaming .parts > .part:last-child::after { animation: none; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="masthead">
+    <div class="brand">
+      <p class="wordmark">Satzlupe<span class="lens" aria-hidden="true"></span></p>
+      <span class="tagline">German sentence analyser</span>
+    </div>
+    <div class="mode" id="mode" data-mode="detecting">
+      <span class="mode-dot" aria-hidden="true"></span>
+      <span id="mode-label">Connecting…</span>
+      <button type="button" class="link-btn" id="key-toggle" hidden>API key</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <form class="composer" id="composer" autocomplete="off">
+      <div class="field">
+        <label class="field-label" for="sentence">German sentence</label>
+        <textarea id="sentence" name="sentence" lang="de" spellcheck="false" rows="3" placeholder="Paste a sentence or two in German">Einige Kastanien gesammelt</textarea>
+        <p class="hint">Paste one or two sentences. Press <kbd>Ctrl</kbd> + <kbd>Enter</kbd> to analyse.</p>
+      </div>
+
+      <div class="field">
+        <span class="field-label" id="examples-label">Examples</span>
+        <div class="examples" role="group" aria-labelledby="examples-label">
+          <button type="button" class="chip" lang="de">Einige Kastanien gesammelt</button>
+          <button type="button" class="chip" lang="de">Das ist ja doch mal was anderes.</button>
+          <button type="button" class="chip" lang="de">Komm halt einfach mit!</button>
+          <button type="button" class="chip" lang="de">Hast du denn schon gegessen?</button>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="submit" class="btn btn-primary" id="analyse">Analyse</button>
+        <button type="button" class="btn btn-secondary" id="stop" hidden>Stop</button>
+        <button type="button" class="btn btn-secondary" id="copy">Copy prompt</button>
+      </div>
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+
+      <div class="key-panel" id="key-panel" hidden>
+        <label class="field-label" for="api-key">Anthropic API key</label>
+        <input type="password" id="api-key" name="api-key" placeholder="sk-ant-…" spellcheck="false" autocomplete="off">
+        <label class="check"><input type="checkbox" id="remember-key" checked> Remember on this device</label>
+        <p class="hint">The key stays in this browser and is sent only to api.anthropic.com. Create one in the <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Claude Console</a>. Without a key, use Copy prompt and paste it into any Claude chat.</p>
+      </div>
+
+      <details class="prompt" id="prompt-details">
+        <summary>Prompt that will be sent</summary>
+        <pre class="prompt-text" id="prompt-text"></pre>
+      </details>
+    </form>
+
+    <section class="result" id="result" aria-labelledby="analysed">
+      <div class="result-head">
+        <p class="eyebrow" id="result-label">Example analysis</p>
+        <h1 class="analysed" id="analysed" lang="de"><mark>Einige Kastanien gesammelt</mark></h1>
+        <p class="result-note" id="result-note">A worked example. Paste your own sentence and press Analyse.</p>
+      </div>
+      <ul class="toc" id="toc" aria-label="Sections"></ul>
+      <p class="legend" id="legend" hidden>
+        <span>Noun gender:</span>
+        <span><span class="g g-m">masculine</span> der</span>
+        <span><span class="g g-f">feminine</span> die</span>
+        <span><span class="g g-n">neuter</span> das</span>
+      </p>
+      <div class="parts" id="parts" aria-live="off"></div>
+    </section>
+  </main>
+</div>
+
+<script type="text/markdown" id="example-md">
+## 1. Overall meaning
+
+**Most natural translation:** "Collected some chestnuts." or "(I) gathered a few chestnuts."
+
+This is not a complete sentence. It is a short, note-style fragment of the kind people write as a photo caption, in a diary or in a text message. The subject and the auxiliary verb are left out, so the full idea is **Ich habe einige Kastanien gesammelt** ("I collected some chestnuts").
+
+- With **wir** understood, it means "(We) collected some chestnuts." Only the context tells you who did it.
+- **Kastanien** usually means horse chestnuts (conkers), the shiny brown ones children pick up in autumn. The edible kind is **Maronen** or **Esskastanien**.
+
+## 2. Word-by-word analysis
+
+| Word | Meaning | Grammar |
+|---|---|---|
+| **Einige** | some, a few, several | Indefinite determiner (quantifier), plural, accusative. Declines like **diese**: **einige** (nom./acc.), **einigen** (dat.), **einiger** (gen.). |
+| **Kastanien** | chestnuts | Noun: **die Kastanie**, feminine. Plural **Kastanien**. Accusative, because it is the direct object of **gesammelt**. |
+| **gesammelt** | collected, gathered | Past participle of **sammeln** (regular verb): **sammeln – sammelte – hat gesammelt**. Present tense: **ich sammle, du sammelst, er/sie sammelt**. |
+
+**Einige** or **ein paar**? Both mean "a few, some". **Einige** sounds a little more neutral or written; **ein paar** is the everyday spoken choice.
+
+## 3. Grammar and sentence structure
+
+The fragment is the end of a Perfekt (present perfect) sentence whose beginning has been dropped:
+
+> **(Ich habe)** · **einige Kastanien** · **gesammelt**
+>
+> subject + auxiliary (left out) · direct object · past participle
+
+- **Subject:** missing, understood from context (usually **ich** or **wir**).
+- **Verb:** Perfekt is formed with **haben** + past participle. Only the participle **gesammelt** remains.
+- **Direct object:** **einige Kastanien** (accusative plural).
+
+**Word order.** In a full German sentence the auxiliary and the participle form a bracket (**Satzklammer**) around everything else: **Ich habe** heute im Park einige Kastanien **gesammelt**. The participle always goes to the end. That is why the object comes *before* the verb here, the reverse of English "collected some chestnuts". When the start of the sentence is dropped, only the closing half of the bracket is left.
+
+Leaving out the subject and auxiliary like this is called **Telegrammstil** ("telegram style"). It is normal in captions, notes and messages, but not in formal writing.
+
+## 4. Modal particles and nuance
+
+There are no modal particles in this sentence, so it carries no extra attitude. It simply reports what happened.
+
+For comparison, here is how a particle would change it:
+
+- **Ich hab halt einige Kastanien gesammelt.** "I just collected some chestnuts, that's all." **Halt** adds a shrug: nothing special, that's how it was.
+- **Ich hab doch Kastanien gesammelt!** "But I *did* collect chestnuts!" **Doch** contradicts the listener or reminds them of something.
+- **Ich hab ja Kastanien gesammelt.** "I collected chestnuts, as you know." **Ja** marks the fact as shared knowledge.
+
+## 5. Natural alternatives
+
+1. **Ich habe heute einige Kastanien gesammelt.** "I collected some chestnuts today."
+   The full, neutral sentence. Fine in speech and in writing.
+2. **Hab ein paar Kastanien gesammelt.** "Collected a few chestnuts."
+   Casual text-message style. **Hab** is the spoken short form of **habe**, and **ein paar** sounds more relaxed than **einige**.
+3. **Wir waren Kastanien sammeln.** "We went chestnut collecting."
+   Puts the focus on the outing as an activity: **sein** + infinitive means "to have gone off and done something".
+4. **Einige Kastanien habe ich auch gesammelt.** "I also collected a few chestnuts."
+   Putting the object first makes it the topic, for example as one item in a list of things you did.
+
+## 6. Tone and context
+
+To a native speaker this sounds neutral and relaxed: a quick note about a small everyday activity. It is typical of photo captions (**Herbstspaziergang: einige Kastanien gesammelt**), diary entries and messages.
+
+Collecting chestnuts is a classic autumn activity in Germany, often with children, who turn them into little figures (**Kastanienmännchen**). So the phrase can feel cosy and seasonal.
+
+Spoken, it works as a short answer, for example to **Was habt ihr heute gemacht?** – **Einige Kastanien gesammelt.** Any stronger feeling (pride, irony, boredom) would come from intonation and context, not from the words themselves.
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<script>
+(function () {
+  "use strict";
+
+  // Used only when the page runs outside Claude (opened as a file or hosted elsewhere).
+  const MODEL = "claude-opus-5-5";
+  const SDK_URL = "https://cdn.jsdelivr.net/npm/@anthropic-ai/sdk@0.131.0/+esm";
+  const KEY_STORAGE = "satzlupe.apiKey";
+
+  function buildPrompt(sentence) {
+    return `Analyse the following German sentence in a clear, learner-friendly way:
+
+${sentence}
+
+Please structure your answer as follows:
+
+1. Overall meaning
+    * Give the most natural English translation.
+    * If there are multiple plausible translations, explain the nuance briefly.
+2. Word-by-word analysis
+    * Explain every word in the sentence.
+    * Give its English meaning.
+    * For verbs, include the infinitive and relevant conjugation.
+    * For nouns, include gender, singular/plural, and case where relevant.
+    * For adjectives/adverbs/pronouns, identify their grammatical function where useful.
+3. Grammar and sentence structure
+    * Explain the grammatical structure of the sentence.
+    * Identify the subject, verb, objects, complements, and other important elements.
+    * Explain word order, especially anything that may be unusual for an English speaker.
+4. Modal particles and nuance
+    * Pay special attention to words such as doch, ja, mal, eben, halt, wohl, denn, schon, etc.
+    * Explain what they contribute to the speaker’s attitude or tone in this specific sentence.
+    * Distinguish their contextual meaning from their dictionary meaning when necessary.
+5. Natural alternatives
+    * Give 2–4 alternative German versions that are grammatically correct.
+    * Translate each one into English.
+    * Explain how the meaning, emphasis, or tone changes.
+6. Tone and context
+    * Explain how a native German speaker might perceive the sentence.
+    * Mention whether it sounds neutral, casual, emotional, defensive, ironic, annoyed, affectionate, etc.
+    * If the tone depends strongly on context or intonation, explicitly say so.
+
+Keep the explanation concise but sufficiently detailed for an intermediate German learner. Use examples where they clarify an important grammatical or semantic point. Do not overcomplicate basic points.`;
+  }
+
+  // Added only when the analysis runs inside this page, so the answer renders cleanly.
+  // "Copy prompt" copies buildPrompt() alone.
+  const FORMAT_NOTE = `
+
+Formatting: reply in Markdown. Start each of the six sections with a level-2 heading in the form "## 1. Overall meaning". In section 2, use a table with the columns Word | Meaning | Grammar, one row per word, and write noun gender as masculine, feminine or neuter. Put German words, phrases and example sentences in bold. Do not add an introduction before section 1 or a closing summary after section 6.`;
+
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    form: $("composer"), sentence: $("sentence"), analyse: $("analyse"), stop: $("stop"),
+    copy: $("copy"), status: $("status"), keyPanel: $("key-panel"), apiKey: $("api-key"),
+    remember: $("remember-key"), keyToggle: $("key-toggle"), mode: $("mode"),
+    modeLabel: $("mode-label"), promptDetails: $("prompt-details"), promptText: $("prompt-text"),
+    result: $("result"), resultLabel: $("result-label"), analysed: $("analysed"),
+    resultNote: $("result-note"), toc: $("toc"), legend: $("legend"), parts: $("parts"),
+  };
+
+  const reduceMotion = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // ---------- storage (per-viewer convenience only) ----------
+  function readKey() {
+    try { return localStorage.getItem(KEY_STORAGE) || ""; } catch (_) { return ""; }
+  }
+  function writeKey(value) {
+    try {
+      if (value) localStorage.setItem(KEY_STORAGE, value);
+      else localStorage.removeItem(KEY_STORAGE);
+    } catch (_) { /* storage blocked: keep the key in memory only */ }
+  }
+  let apiKey = readKey();
+  els.apiKey.value = apiKey;
+
+  // ---------- engine: Claude inside the page, or the viewer's API key ----------
+  const samplePromise = (window.claude && typeof window.claude.use === "function")
+    ? Promise.resolve(window.claude.use("sample")).catch(() => null)
+    : Promise.resolve(null);
+  let engine = "detecting";
+
+  function updateMode() {
+    els.keyToggle.hidden = engine !== "api";
+    if (engine === "detecting") {
+      els.mode.dataset.mode = "detecting";
+      els.modeLabel.textContent = "Connecting…";
+    } else if (engine === "claude") {
+      els.mode.dataset.mode = "claude";
+      els.modeLabel.textContent = "Runs on your Claude account";
+    } else {
+      els.mode.dataset.mode = apiKey ? "api" : "api-missing";
+      els.modeLabel.textContent = apiKey ? "Uses your API key" : "Add an API key to analyse here";
+    }
+  }
+  samplePromise.then((sample) => {
+    engine = sample ? "claude" : "api";
+    if (engine === "api" && !apiKey) els.keyPanel.hidden = false;
+    updateMode();
+  });
+  updateMode();
+
+  els.keyToggle.addEventListener("click", () => {
+    els.keyPanel.hidden = !els.keyPanel.hidden;
+    if (!els.keyPanel.hidden) els.apiKey.focus();
+  });
+  els.apiKey.addEventListener("input", () => {
+    apiKey = els.apiKey.value.trim();
+    writeKey(els.remember.checked ? apiKey : "");
+    updateMode();
+  });
+  els.remember.addEventListener("change", () => writeKey(els.remember.checked ? apiKey : ""));
+
+  // ---------- markdown rendering ----------
+  function escapeHtml(s) {
+    return s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+  function toHtml(md) {
+    if (window.marked && window.DOMPurify) {
+      return window.DOMPurify.sanitize(window.marked.parse(md, { gfm: true }));
+    }
+    return '<pre class="plain">' + escapeHtml(md) + "</pre>";
+  }
+
+  const GENDER = { masculine: "g-m", feminine: "g-f", neuter: "g-n" };
+  function markGenders(root) {
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const hits = [];
+    while (walker.nextNode()) {
+      if (/\b(masculine|feminine|neuter)\b/i.test(walker.currentNode.nodeValue)) hits.push(walker.currentNode);
+    }
+    for (const node of hits) {
+      const frag = document.createDocumentFragment();
+      const parts = node.nodeValue.split(/\b(masculine|feminine|neuter)\b/i);
+      parts.forEach((part, i) => {
+        if (i % 2 === 0) { if (part) frag.append(part); return; }
+        const span = document.createElement("span");
+        span.className = "g " + GENDER[part.toLowerCase()];
+        span.textContent = part;
+        frag.append(span);
+      });
+      node.replaceWith(frag);
+    }
+    return hits.length > 0;
+  }
+
+  function renderAnalysis(md) {
+    const tmp = document.createElement("div");
+    tmp.innerHTML = toHtml(md);
+    const out = document.createDocumentFragment();
+    const sections = [];
+    let current = null;
+    for (const node of Array.from(tmp.childNodes)) {
+      if (node.nodeType === Node.TEXT_NODE && !node.nodeValue.trim()) continue;
+      if (node.nodeName === "H2") {
+        current = document.createElement("section");
+        current.className = "part";
+        current.id = "part-" + (sections.length + 1);
+        const raw = node.textContent.trim();
+        const m = raw.match(/^(\d+)[.)]?\s+(.+)$/);
+        const h = document.createElement("h2");
+        const num = document.createElement("span");
+        num.className = "part-num";
+        num.textContent = m ? m[1] : String(sections.length + 1);
+        const label = document.createElement("span");
+        label.textContent = m ? m[2] : raw;
+        h.append(num, label);
+        current.append(h);
+        out.append(current);
+        sections.push({ id: current.id, num: num.textContent, label: label.textContent });
+        continue;
+      }
+      if (!current) {
+        current = document.createElement("section");
+        current.className = "part";
+        out.append(current);
+      }
+      if (node.nodeName === "TABLE") {
+        const heads = Array.from(node.querySelectorAll("thead th")).map((th) => th.textContent.trim());
+        node.querySelectorAll("tbody tr").forEach((tr) => {
+          Array.from(tr.children).forEach((td, i) => { if (heads[i]) td.dataset.label = heads[i]; });
+        });
+        const wrap = document.createElement("div");
+        wrap.className = "table-wrap";
+        wrap.append(node);
+        current.append(wrap);
+      } else {
+        current.append(node);
+      }
+    }
+    const hasGender = markGenders(out);
+    els.parts.replaceChildren(out);
+    els.legend.hidden = !hasGender;
+    renderToc(sections);
+  }
+
+  function renderToc(sections) {
+    els.toc.replaceChildren(...sections.map((s) => {
+      const li = document.createElement("li");
+      const b = document.createElement("button");
+      b.type = "button";
+      const n = document.createElement("span");
+      n.className = "n";
+      n.textContent = s.num;
+      b.append(n, s.label);
+      b.addEventListener("click", () => {
+        const target = document.getElementById(s.id);
+        if (target) target.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+      });
+      li.append(b);
+      return li;
+    }));
+  }
+
+  let pendingMd = null;
+  let frame = 0;
+  function scheduleRender(md) {
+    pendingMd = md;
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      if (pendingMd !== null) renderAnalysis(pendingMd);
+    });
+  }
+  function renderNow(md) {
+    if (frame) { cancelAnimationFrame(frame); frame = 0; }
+    pendingMd = null;
+    renderAnalysis(md);
+  }
+
+  function showWaiting(text) {
+    const box = document.createElement("div");
+    box.className = "waiting";
+    const p = document.createElement("p");
+    const dots = document.createElement("span");
+    dots.className = "dots";
+    dots.setAttribute("aria-hidden", "true");
+    dots.innerHTML = "<span></span><span></span><span></span>";
+    p.append(dots, " " + text);
+    const sub = document.createElement("p");
+    sub.className = "sub";
+    sub.textContent = "A full analysis usually takes 20 to 60 seconds. The sections appear as they are written.";
+    box.append(p, sub);
+    els.parts.replaceChildren(box);
+    els.toc.replaceChildren();
+    els.legend.hidden = true;
+  }
+
+  function showNotice(text) {
+    const box = document.createElement("div");
+    box.className = "notice";
+    const p = document.createElement("p");
+    p.textContent = text;
+    box.append(p);
+    els.parts.replaceChildren(box);
+    els.toc.replaceChildren();
+    els.legend.hidden = true;
+  }
+
+  function setHeader(sentence, label, note) {
+    els.resultLabel.textContent = label;
+    const mark = document.createElement("mark");
+    mark.textContent = sentence;
+    els.analysed.replaceChildren(mark);
+    els.resultNote.textContent = note || "";
+    els.resultNote.hidden = !note;
+  }
+
+  // ---------- status + busy state ----------
+  function setStatus(text, tone) {
+    els.status.textContent = text || "";
+    if (tone) els.status.dataset.tone = tone;
+    else delete els.status.dataset.tone;
+  }
+  let busy = false;
+  let stopCurrent = null;
+  function setBusy(on) {
+    busy = on;
+    els.analyse.disabled = on;
+    els.analyse.textContent = on ? "Analysing…" : "Analyse";
+    els.stop.hidden = !on;
+    els.result.classList.toggle("is-streaming", on);
+    if (!on) stopCurrent = null;
+  }
+
+  // ---------- prompt preview + copy ----------
+  function currentSentence() {
+    return els.sentence.value.trim();
+  }
+  function updatePreview() {
+    els.promptText.textContent = buildPrompt(currentSentence() || "…");
+  }
+  els.sentence.addEventListener("input", updatePreview);
+  updatePreview();
+
+  document.querySelectorAll(".examples .chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      els.sentence.value = chip.textContent;
+      updatePreview();
+      setStatus("");
+      els.sentence.focus();
+    });
+  });
+
+  els.copy.addEventListener("click", async () => {
+    const s = currentSentence();
+    if (!s) { setStatus("Paste a German sentence first.", "error"); els.sentence.focus(); return; }
+    const text = buildPrompt(s);
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus("Prompt copied. Paste it into any Claude chat.");
+    } catch (_) {
+      els.promptDetails.open = true;
+      const range = document.createRange();
+      range.selectNodeContents(els.promptText);
+      const sel = window.getSelection();
+      sel.removeAllRanges();
+      sel.addRange(range);
+      setStatus("Copying was blocked here. The prompt is selected below: press Ctrl+C (⌘C on a Mac).");
+    }
+  });
+
+  // ---------- analysis ----------
+  els.form.addEventListener("submit", (e) => { e.preventDefault(); analyse(); });
+  els.sentence.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) { e.preventDefault(); analyse(); }
+  });
+  els.stop.addEventListener("click", () => { if (stopCurrent) stopCurrent(); });
+
+  async function analyse() {
+    if (busy) return;
+    const s = currentSentence();
+    if (!s) { setStatus("Paste a German sentence first.", "error"); els.sentence.focus(); return; }
+    if (engine === "detecting") setStatus("Connecting to Claude…");
+    const sample = await samplePromise;
+    if (sample) return runWithClaude(sample, s);
+    if (!apiKey) {
+      els.keyPanel.hidden = false;
+      els.apiKey.focus();
+      setStatus("Add your Anthropic API key to analyse here, or use Copy prompt.", "error");
+      return;
+    }
+    return runWithApiKey(s);
+  }
+
+  const SAMPLE_ERRORS = {
+    not_granted: "Claude wasn't allowed for this page. Use Copy prompt and paste it into a Claude chat instead.",
+    sampling_disabled: "Claude isn't available for this account here. Use Copy prompt and paste it into a Claude chat instead.",
+    capability_disabled: "Claude isn't available in this view. Use Copy prompt and paste it into a Claude chat instead.",
+    capability_removed: "Claude isn't available in this view. Use Copy prompt and paste it into a Claude chat instead.",
+    not_declared: "Claude isn't available in this view. Use Copy prompt and paste it into a Claude chat instead.",
+    rate_limited: "Too many requests right now. Wait a little, then press Analyse again.",
+    session_expired: "Your Claude session has expired. Sign in again, then press Analyse.",
+    prompt_too_large: "That text is too long. Paste one or two sentences.",
+    empty_completion: "Claude returned an empty answer. Try rephrasing or shortening the text.",
+    refused: "Claude declined to analyse this text. Try a different sentence.",
+  };
+
+  async function runWithClaude(sample, s) {
+    const ctl = new AbortController();
+    setBusy(true);
+    stopCurrent = () => ctl.abort();
+    setHeader(s, "Analysis", "");
+    showWaiting("Reading the sentence…");
+    setStatus("");
+    let streamed = "";
+    try {
+      const { text, truncated } = await sample(buildPrompt(s) + FORMAT_NOTE, {
+        signal: ctl.signal,
+        onText: ({ text }) => { streamed = text; scheduleRender(text); },
+      });
+      renderNow(text);
+      setStatus(truncated ? "The answer was cut short. Try a shorter passage." : "");
+    } catch (e) {
+      const code = e && e.code;
+      const partial = (e && e.text) || "";
+      if (code === "refused") showNotice(SAMPLE_ERRORS.refused);
+      else if (partial) renderNow(partial);
+      else if (!streamed) showNotice(code === "cancelled" ? "Stopped before any text arrived." : "No analysis yet.");
+      if (code === "cancelled") setStatus("Stopped.");
+      else setStatus(SAMPLE_ERRORS[code] || "The connection dropped before the analysis finished. Press Analyse to try again.", "error");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  let sdkPromise = null;
+  function loadSdk() {
+    if (!sdkPromise) {
+      sdkPromise = import(SDK_URL).catch((err) => { sdkPromise = null; throw err; });
+    }
+    return sdkPromise;
+  }
+
+  async function runWithApiKey(s) {
+    setBusy(true);
+    let stopped = false;
+    let stream = null;
+    stopCurrent = () => { stopped = true; if (stream) stream.abort(); };
+    setHeader(s, "Analysis", "");
+    showWaiting("Reading the sentence…");
+    setStatus("");
+    let sdk;
+    try {
+      sdk = await loadSdk();
+    } catch (_) {
+      showNotice("The Anthropic SDK couldn't be loaded from cdn.jsdelivr.net.");
+      setStatus("Check your internet connection, or use Copy prompt instead.", "error");
+      setBusy(false);
+      return;
+    }
+    if (stopped) { showNotice("Stopped before any text arrived."); setStatus("Stopped."); setBusy(false); return; }
+
+    let text = "";
+    try {
+      const client = new sdk.default({ apiKey, dangerouslyAllowBrowser: true });
+      stream = client.beta.messages.stream({
+        model: MODEL,
+        max_tokens: 16000,
+        output_config: { effort: "medium" },
+        betas: ["server-side-fallback-2026-07-01"],
+        fallbacks: "default",
+        messages: [{ role: "user", content: buildPrompt(s) + FORMAT_NOTE }],
+      });
+      stream.on("text", (delta) => { text += delta; scheduleRender(text); });
+      const message = await stream.finalMessage();
+      if (message.stop_reason === "refusal") {
+        showNotice("Claude declined to analyse this text. Try a different sentence.");
+        setStatus("");
+      } else {
+        if (text) renderNow(text);
+        else showNotice("Claude returned an empty answer. Try rephrasing or shortening the text.");
+        setStatus(message.stop_reason === "max_tokens" ? "The answer was cut short. Try a shorter passage." : "");
+      }
+    } catch (err) {
+      if (text) renderNow(text);
+      if (stopped || err instanceof sdk.APIUserAbortError) {
+        if (!text) showNotice("Stopped before any text arrived.");
+        setStatus("Stopped.");
+      } else {
+        if (!text) showNotice("No analysis yet.");
+        setStatus(describeApiError(sdk, err), "error");
+        if (err instanceof sdk.AuthenticationError) { els.keyPanel.hidden = false; els.apiKey.focus(); }
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function describeApiError(sdk, err) {
+    if (err instanceof sdk.AuthenticationError) return "The API key was rejected. Check it and try again.";
+    if (err instanceof sdk.PermissionDeniedError) return "This API key isn't allowed to use " + MODEL + ".";
+    if (err instanceof sdk.RateLimitError) return "Rate limit reached. Wait a little, then press Analyse again.";
+    if (err instanceof sdk.BadRequestError) return "The request was rejected: " + err.message;
+    if (err instanceof sdk.APIConnectionError) return "Couldn't reach api.anthropic.com. Check your connection and try again.";
+    if (err instanceof sdk.APIError) return "The API returned an error (" + (err.status || "unknown") + "). Try again in a moment.";
+    return "Something went wrong: " + (err && err.message ? err.message : String(err));
+  }
+
+  // ---------- first frame: the worked example ----------
+  renderAnalysis($("example-md").textContent.trim());
+})();
+</script>
+</body>
+</html>
