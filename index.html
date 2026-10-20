@@ -155,7 +155,8 @@ button, input, textarea { font: inherit; color: inherit; }
 }
 .mode[data-mode="claude"] .mode-dot,
 .mode[data-mode="api"] .mode-dot { background: var(--g-n); }
-.mode[data-mode="api-missing"] .mode-dot { background: var(--marker); }
+.mode[data-mode="api-missing"] .mode-dot,
+.mode[data-mode="unavailable"] .mode-dot { background: var(--marker); }
 .link-btn {
   border: 0;
   background: none;
@@ -748,9 +749,13 @@ Formatting: reply in Markdown. Start each of the six sections with a level-2 hea
   els.apiKey.value = apiKey;
 
   // ---------- engine: Claude inside the page, or the viewer's API key ----------
-  const samplePromise = (window.claude && typeof window.claude.use === "function")
+  // On claude.ai the page cannot reach api.anthropic.com, so an API key only works
+  // in a standalone copy (a local file or GitHub Pages).
+  const inClaude = !!(window.claude && typeof window.claude.use === "function");
+  const samplePromise = inClaude
     ? Promise.resolve(window.claude.use("sample")).catch(() => null)
     : Promise.resolve(null);
+  const UNAVAILABLE = "Claude can't run in this view (you may need to sign in to claude.ai). Use Copy prompt and paste it into a Claude chat.";
   let engine = "detecting";
 
   function updateMode() {
@@ -761,13 +766,16 @@ Formatting: reply in Markdown. Start each of the six sections with a level-2 hea
     } else if (engine === "claude") {
       els.mode.dataset.mode = "claude";
       els.modeLabel.textContent = "Runs on your Claude account";
+    } else if (engine === "unavailable") {
+      els.mode.dataset.mode = "unavailable";
+      els.modeLabel.textContent = "Analyse is unavailable here";
     } else {
       els.mode.dataset.mode = apiKey ? "api" : "api-missing";
       els.modeLabel.textContent = apiKey ? "Uses your API key" : "Add an API key to analyse here";
     }
   }
   samplePromise.then((sample) => {
-    engine = sample ? "claude" : "api";
+    engine = sample ? "claude" : inClaude ? "unavailable" : "api";
     if (engine === "api" && !apiKey) els.keyPanel.hidden = false;
     updateMode();
   });
@@ -1007,6 +1015,7 @@ Formatting: reply in Markdown. Start each of the six sections with a level-2 hea
     if (engine === "detecting") setStatus("Connecting to Claude…");
     const sample = await samplePromise;
     if (sample) return runWithClaude(sample, s);
+    if (inClaude) { setStatus(UNAVAILABLE, "error"); return; }
     if (!apiKey) {
       els.keyPanel.hidden = false;
       els.apiKey.focus();

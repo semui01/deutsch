@@ -20,6 +20,8 @@ Everything lives in [`index.html`](index.html). There is no build step and nothi
 - When the page is opened as a claude.ai artifact, it runs on the viewer's own Claude account. You don't need an API key.
 - When it is opened anywhere else (a local file or GitHub Pages), it calls the Claude API directly from the browser with your own Anthropic API key (model `claude-opus-5-5`). The key is kept only in that browser and is sent only to `api.anthropic.com`.
 
+On claude.ai the page can't contact `api.anthropic.com`, so API keys only work in the standalone page. If you share the artifact, each person who opens it uses their own Claude account and must be signed in. Anyone who would rather use their own API key should open `index.html` instead.
+
 ## Running it locally
 
 Open `index.html` in a browser, or serve the folder:
